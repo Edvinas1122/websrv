@@ -1,7 +1,5 @@
 #include <ServerExecution.hpp>
 
-/* https://github.com/LucieLeBriquer/webserv */
-
 static void	set_non_blocking_terminal_read()
 {
 	int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
