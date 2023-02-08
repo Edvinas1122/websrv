@@ -66,7 +66,7 @@ int	main(void)
 	set_non_blocking_terminal_read();
 	engine.printInfo();
 	while (terminal_interface())
-		engine.start();
-	engine.end();
+		engine.RunTime();
+	engine.Quit();
 	return (0);
 }

@@ -108,6 +108,27 @@ void	ServerInit::parce_server(std::string const &server_info)
 	servers_info.push_back(info);
 }
 
+// static std::map<std::string, size_t>	map_methods()
+// {
+// 	std::map<std::string, size_t> request_methods;
+// 	request_methods["GET"] = GET_METHOD;
+// 	request_methods["HEAD"] = HEAD_METHOD;
+// 	request_methods["POST"] = POST_METHOD;
+// 	request_methods["DELETE"] = DELETE_METHOD;
+// 	request_methods["TRACE"] = TRACE_METHOD;
+// 	request_methods["CONNECT"] = CONNECT_METHOD;
+// 	request_methods["OPTIONS"] = OPTIONS_METHOD;
+// 	return (request_methods);
+// }
+
+// static void	map_versions(std::map<std::string, size_t> &versions)
+// {
+// 	versions["HTTP/1.1"] = VERSION_1_1;
+// 	versions["HTTP/1.0"] = VERSION_1_0;
+// }
+
+// std::map<std::string, size_t> Request::request_methods;
+
 void	ServerInit::parce_servers(std::list<std::string> const &server_definitions)
 {
 	std::list<std::string>::const_iterator	iterator = server_definitions.begin();
@@ -117,4 +138,7 @@ void	ServerInit::parce_servers(std::list<std::string> const &server_definitions)
 		parce_server(*iterator);
 		iterator++;
 	}
+	// Request::InfoMap	Request::request_methods = map_methods();
+	// map_versions(Request::versions);
+
 }

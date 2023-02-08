@@ -163,17 +163,3 @@ server_info_t	&ServerInit::get_server_info(int index)
 	}
 	return (*iterator);
 }
-
-void ServerExecution::constructServer(ServerInit &initiator)
-{
-
-	server = new HTTP_Server(initiator.get_server_info(0));
-	observer.AssignSocket(server->server_info().listening_socket_fd[0]);
-}
-
-void	ServerExecution::parceConfigurationFile(const char *config_file_path)
-{
-	ServerInit	initiator(config_file_path);
-
-	constructServer(initiator);
-}

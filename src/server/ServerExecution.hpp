@@ -2,8 +2,8 @@
 # define SERVEREXECUTION_HPP
 
 # include <includes.hpp>
-# include <BroadCastExecutor.hpp>
 # include <HTTP_Server.hpp>
+# include <BroadCastExecutor.hpp>
 # include <ObserverAPI.hpp>
 # include <initiator.hpp>
 
@@ -11,11 +11,8 @@
 # define STREAM_A_PACKET(que_iter) ((*que_iter)->stream_packet())
 # define SOCKETS_LOUD(x) (observer.checkFD(server->server_info().listening_socket_fd[x]))
 
-typedef bool (*HttpTaskFuncPtr)();
-
-class HTTP_Request;
-class BroadCastExecutor;
 class HTTP_Server;
+class BroadCastExecutor;
 class ServerInit;
 class ObserverAPI;
 
@@ -29,31 +26,43 @@ class ServerExecution
 		clientQueVec	client_que;
 		ObserverAPI		observer;
 
-	private:
-		size_t	load_track;
-
 	public:
-		ServerExecution() {load_track = 0;};
+		ServerExecution() {};
 		~ServerExecution();
 
-		void	start(void);
+	/*
+		Initiator
+	*/
 		void	parceConfigurationFile(const char *file_path);
-		void	end(void);
+
+	/*
+		Controler
+	*/
+		void	RunTime(void);
+		void	Quit(void);
+
+		/* info display */
 		void	printInfo(void);
 	
 	private:
 		/* Initialize */
 		void	constructServer(ServerInit &initiator);
-		/* RunTime */
+
+	/* RunTime */
+
+	/*
+		Serveque Que
+	*/
 		void	serveQue(void);
-		void	addToBroadCastQue(BroadCastExecutor stream);
 		bool	clientObservation(clientQueVec &client_que, clientQueVec::iterator &que_iter);
-
-		void	acceptClient(void);
-
 		bool	serveClient(clientQueVec &client_que, clientQueVec::iterator &que_iter);
-		// void	incommingRequestHandle(const int user_agent_fd);
-		// void	receive_http_request(int user_agent_fd, std::string &received_message) EXCEPTION;
+
+	/*
+		Accept Client
+	*/
+		void	acceptClient(void);
+		void	addToBroadCastQue(BroadCastExecutor stream);
+
 
 		bool	noNewRequests();
 

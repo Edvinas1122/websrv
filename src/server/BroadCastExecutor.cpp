@@ -1,27 +1,19 @@
+#include <HTTP_Server.hpp>
+#include <Request.hpp>
 #include <BroadCastExecutor.hpp>
 
-/*
-	responds to socket connection
-	1. recv https://man7.org/linux/man-pages/man2/recv.2.html
-	2. send https://man7.org/linux/man-pages/man2/send.2.html
-*/
+
 # define NOT_LAST(x) (x > 0 ? true : false)
 # define RECEIVE_BUFFER_SIZE 1024
 # define BUFFER_SIZE 1024
 # define REQUEST_TIMEOUT 100000000000
 # define FAILURE 0
 
-void	BroadCastExecutor::receive_http_request(std::string &message) EXCEPTION
-{
-	char		mesg[RECEIVE_BUFFER_SIZE + 1];
+BroadCastExecutor::~BroadCastExecutor() {};
 
-	std::cout << "proceeding to receive ================" << std::endl;
-	memset((void*)mesg, (int)'\0', RECEIVE_BUFFER_SIZE + 1);
-	if (recv(client_fd, mesg, RECEIVE_BUFFER_SIZE, 0) <= FAILURE)
-		throw ReceiveFailure();
-	message.append(mesg);
-	std::cout << message << std::endl;
-}
+/*
+	Control interface
+*/
 
 void	BroadCastExecutor::ReceiveRequest() EXCEPTION
 {
@@ -34,14 +26,9 @@ void	BroadCastExecutor::ReceiveRequest() EXCEPTION
 	}
 	try {
 		client_request.parce(message);
-	} catch(HTTP_Request::InvalidRequest &failMessage) {
+	} catch(Request::InvalidRequest &failMessage) {
 		throw BadRequest();
 	}
-}
-
-void	BroadCastExecutor::SetLastReceivedInfo()
-{
-
 }
 
 void	BroadCastExecutor::Respond() EXCEPTION
@@ -71,13 +58,31 @@ bool	BroadCastExecutor::ServeRequest()
 	return (last);
 }
 
-// BroadCastExecutor::BroadCastExecutor(HTTP_Server *context, const int client_fd):
-// 										client_request(context), client_fd(client_fd)
-// {
-// 	memset(&info, 0, sizeof(broadCastInfo));
-// }
+void	BroadCastExecutor::close_connection()
+{
+	// shutdown (_user_agent_fd, SHUT_RDWR);
+	if (info.file_fd)
+		close (info.file_fd);
+	close(client_fd);
+}
 
-BroadCastExecutor::~BroadCastExecutor() {};
+/*
+	BroadCast
+	responds to socket connection
+	1. recv https://man7.org/linux/man-pages/man2/recv.2.html
+	2. send https://man7.org/linux/man-pages/man2/send.2.html
+*/
+
+void	BroadCastExecutor::receive_http_request(std::string &message) EXCEPTION
+{
+	char		mesg[RECEIVE_BUFFER_SIZE + 1];
+
+	memset((void*)mesg, (int)'\0', RECEIVE_BUFFER_SIZE + 1);
+	if (recv(client_fd, mesg, RECEIVE_BUFFER_SIZE, 0) <= FAILURE)
+		throw ReceiveFailure();
+	message.append(mesg);
+	std::cout << message << std::endl;
+}
 
 bool	BroadCastExecutor::streamPacket(void) EXCEPTION
 {
@@ -93,25 +98,27 @@ bool	BroadCastExecutor::streamPacket(void) EXCEPTION
 	return (NOT_LAST(bytes_read));
 }
 
-void	BroadCastExecutor::close_connection(void)
-{
-	// shutdown (_user_agent_fd, SHUT_RDWR);
-	if (info.file_fd)
-		close (info.file_fd);
-	close(client_fd);
-}
 
-int	BroadCastExecutor::getMethod() const
+/*
+	Getters
+*/
+
+int	BroadCastExecutor::info_Method() const
 {
 	return (info.method);
 }
 
-int	BroadCastExecutor::user_agent_fd() const
+int	BroadCastExecutor::info_UserFd() const
 {
 	return (client_fd);
 }
 
-void	BroadCastExecutor::enableKeepAlive()
+
+/*
+	Setters
+*/
+
+void	BroadCastExecutor::set_KeepAlive()
 {
 	info.keep_alive = true;
 }

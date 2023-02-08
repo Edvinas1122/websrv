@@ -18,6 +18,7 @@ class CGI_Median
 			return *this;
 		};
 		~CGI_Median() {};
+		
 		int	execute(std::string	const &cgi_script_path, std::string const &query) EXCEPTION;
 	
 	class	ExecutionFailure: public std::exception {};
