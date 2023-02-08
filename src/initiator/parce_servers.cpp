@@ -2,7 +2,7 @@
 
 static int	is_value_symbol(const char c)
 {
-	if ((c > 40 && c < 91) || (c > 96 && c <= 122))
+	if ((c > 40 && c < 91) || (c > 94 && c <= 122))
 		return (1);
 	return (0);
 }
@@ -21,8 +21,9 @@ std::string	ServerInit::aquire_value(std::string const &server_info_text, const 
 		{
 			if (end && is_value_symbol(server_info_text[iterator]))
 				throw SemiCollonFailure();
-			if ((!end && !is_value_symbol(server_info_text[iterator])))
+			if ((!end && !is_value_symbol(server_info_text[iterator]))) {
 				end = iterator;
+			}
 		}
 		iterator++;
 	}

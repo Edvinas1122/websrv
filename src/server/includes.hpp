@@ -22,5 +22,7 @@
 # include <fcntl.h>
 # include <return_codes.h>
 # include <cerrno>
+# include <sys/types.h>
+# include <sys/wait.h>
 
 #endif

@@ -62,7 +62,7 @@ int	main(void)
 {
 	ServerExecution	engine;
 
-	engine.parceConfigurationFile("/home/websrv/server.conf");
+	engine.parceConfigurationFile("/home/git_websrv/server.conf");
 	set_non_blocking_terminal_read();
 	engine.printInfo();
 	while (terminal_interface())

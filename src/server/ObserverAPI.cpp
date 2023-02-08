@@ -75,7 +75,7 @@ ObserverAPI::~ObserverAPI(void)
 		delete[] events;
 }
 
-int	ObserverAPI::observe(const int timeout = 0) EXCEPTION
+int	ObserverAPI::observe(const int timeout) EXCEPTION
 {
 	int	count_of_loud_sockets;
 

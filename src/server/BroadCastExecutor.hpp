@@ -3,6 +3,7 @@
 
 // # include <includes.hpp>
 # include <ServerExecution.hpp>
+
 // #include <HTTP_Server.hpp>
 
 class HTTP_Server;
@@ -38,7 +39,6 @@ class HTTP_Request
 		broadCastInfo	getBroatCastInfo();
 		int				Validate();
 
-	
 	private:
 		/*Parsing*/
 		void	validate_received_message(std::string const &received_message);
@@ -49,15 +49,18 @@ class HTTP_Request
 
 		/* Access */
 		int		access_path(void);
+		std::string	fileExtension() const;
+		std::string	file() const;
+
 	public:
 		class	InvalidRequest: public std::exception {};
 };
 
 typedef	struct broadCastInfo_s {
-	int		method;
-	int		file_fd;
-	bool	not_first_packet;
-	bool	keep_alive;
+	int			method;
+	int			file_fd;
+	bool		not_first_packet;
+	bool		keep_alive;
 }	broadCastInfo;
 
 class BroadCastExecutor

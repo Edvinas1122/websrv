@@ -19,6 +19,33 @@ void	HTTP_Server::initiateSockets(std::list<std::string> port_numbers)
 	}
 }
 
+
+bool	HTTP_Server::check_for_cgi(std::string const &file_extention)
+{
+	if (cgi.find(file_extention) == cgi.end()) {
+		return (false);
+	} else {
+		return (true);
+	}
+}
+
+/* Executes CGI and Return File descriptor of ready to read pipe */
+int	HTTP_Server::executeCGI(std::string const &file_extention, std::string const &script, std::string const &query)
+{
+	std::string fullPath;
+
+	fullPath.append(root_dir);
+	fullPath.append(script);
+	return ((cgi.find(file_extention))->second.execute(fullPath, query));
+}
+
+void	HTTP_Server::assignCGI()
+{
+	CGI_Median	cgi_controler("/usr/bin/php-cgi");
+
+	cgi[".php"] = cgi_controler;
+}
+
 HTTP_Server::HTTP_Server(server_info_t &info)
 {
 	// host = info.host;
@@ -35,6 +62,7 @@ HTTP_Server::HTTP_Server(server_info_t &info)
 		copy_list_values(port_number, info.port_number);
 	listening_socket_fd.reserve(2);
 	initiateSockets(info.port_number);
+	assignCGI();
 }
 
 // bool	HTTP_Server::observeListeningSocket() EXCEPTION

@@ -96,10 +96,13 @@ int	HTTP_Request::access_path(void)
 	std::string	path_to_get;
 
 	path_to_get = _server->server_info().root_dir;
-	if (!query.length())
-		path_to_get.append("/index.html");
-	else if (query == "/")
-		path_to_get.append("/index.html");
+	if (!query.length()) {
+		path_to_get.append("/");
+		path_to_get.append(_server->server_info().index);
+	}
+	else if (query == "/") {
+		path_to_get.append(_server->server_info().index);
+	}
 	else
 		path_to_get.append(query);
 	if (check_requested_access(path_to_get) == 0)
@@ -123,10 +126,44 @@ int	HTTP_Request::access_path(void)
 
 // HttpTaskFuncPtr set_method(const int user_agent_fd, const int file_fd);
 
+std::string	HTTP_Request::fileExtension() const
+{
+	std::size_t	dotPos;
+	std::string	fileExtension;
+
+	dotPos = query.find_last_of(".");
+	if (dotPos != std::string::npos) {
+		fileExtension = query.substr(dotPos);
+		return (fileExtension);
+	} else {
+		return ("");
+	}
+}
+
+std::string	HTTP_Request::file() const
+{
+    std::string fileName = query;
+
+    size_t query_start = fileName.find('?');
+    if (query_start != std::string::npos) {
+        fileName.erase(query_start);
+		return (fileName);
+    }
+	return ("");
+}
+
 broadCastInfo	HTTP_Request::getBroatCastInfo()
 {
 	broadCastInfo	info;
 
+	std::cout << "check for cgi " << fileExtension() << std::endl;
+	if (_server->check_for_cgi(fileExtension()))
+	{
+		info.file_fd = _server->executeCGI(fileExtension(), file(), query);
+		info.method = GET_METHOD;
+		info.not_first_packet = true;
+		return (info);
+	}
 	if (method == GET_METHOD)
 		info.file_fd = access_path();	
 	info.method = method;
