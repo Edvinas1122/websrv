@@ -15,7 +15,6 @@ class Request
 		size_t		method;
 		size_t		version;
 		std::string	path;
-		// std::string	requested_by_host;
 		bool		keep_alive;
 
 	public:
@@ -50,7 +49,7 @@ class Request
 		std::string	fileExtension() const;
 		std::string	file() const;
 
-	public:
+	private:
 		typedef std::map<std::string, size_t>	InfoMap;
 		static std::map<std::string, size_t>	request_methods;
 		static std::map<std::string, size_t>	versions;
