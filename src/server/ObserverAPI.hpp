@@ -4,24 +4,15 @@
 # include <includes.hpp>
 # define MAX_EPOLL_EVENTS 5
 
-// typedef struct event_s: epoll_event
-// {
-// 	bool	is_socket;
-// 	bool	is_noticed;
-// } 	event;
-
 typedef struct epoll_event event;
 
 class ObserverAPI
 {
 	private:
-		// typedef std::vector<struct epoll_event*> epollEventArray;
 		typedef	event*	epollEventArray;
-		// typedef struct epoll_event	event;
 
 	private:
 		int					epol_fd;
-		// struct epoll_event	events[5];
 		epollEventArray		events;
 		size_t				event_ammount;
 
