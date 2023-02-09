@@ -39,11 +39,16 @@ int	HTTP_Server::executeCGI(std::string const &file_extention, std::string const
 	return ((cgi.find(file_extention))->second.execute(fullPath, query));
 }
 
-void	HTTP_Server::assignCGI()
+void	HTTP_Server::assignCGI(std::map<std::string, std::string> const &cgi_response)
 {
-	CGI_Median	cgi_controler("/usr/bin/php-cgi");
+	std::map<std::string, std::string>::const_iterator	cgi_info = cgi_response.begin();
 
-	cgi[".php"] = cgi_controler;
+	while (cgi_info != cgi_response.end())
+	{
+		std::cout << "Setting CGI: " << cgi_info->first << " on " << cgi_info->second << std::endl;
+		cgi[cgi_info->first.c_str()] = CGI_Median(cgi_info->second.c_str());
+		cgi_info++;
+	}
 }
 
 HTTP_Server::HTTP_Server(server_info_t &info)
@@ -62,7 +67,7 @@ HTTP_Server::HTTP_Server(server_info_t &info)
 		copy_list_values(port_number, info.port_number);
 	listening_socket_fd.reserve(2);
 	initiateSockets(info.port_number);
-	assignCGI();
+	assignCGI(info.cgi_response);
 }
 
 // bool	HTTP_Server::observeListeningSocket() EXCEPTION
@@ -87,7 +92,7 @@ server_info_t	HTTP_Server::server_info() const
 	info.host = host;
 	info.server_name = server_name;
 	info.root_dir = root_dir;
-	info.directory_listing_enabled = directory_listing_enabled;
+	// info.directory_listing_enabled = directory_listing_enabled;
 	// info.response_to_dir = response_to_dir;
 	// info.cgi_response = cgi_response;
 	// info.upload_dir = upload_dir;

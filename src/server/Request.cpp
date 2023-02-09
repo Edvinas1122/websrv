@@ -31,6 +31,12 @@ static int check_requested_access(std::string path_to_get)
 	return (access(path_to_get.c_str(), R_OK));
 }
 
+
+/*
+	https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
+	implament 301
+*/
+
 int	Request::Validate()
 {
 	std::string	path;

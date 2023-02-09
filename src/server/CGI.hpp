@@ -14,7 +14,7 @@ class CGI_Median
 						cgi_executable_path(cgi_executable_path) {};
 		CGI_Median(const CGI_Median &src): cgi_executable_path(src.cgi_executable_path) {};
 		CGI_Median	&operator=(const CGI_Median &src) {
-			cgi_executable_path.append(src.cgi_executable_path);
+			cgi_executable_path = src.cgi_executable_path;
 			return *this;
 		};
 		~CGI_Median() {};

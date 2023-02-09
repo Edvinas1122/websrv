@@ -7,16 +7,24 @@
 #define FAILED_SOCKET -1
 #define LIST_END NULL
 
+typedef	struct Route_s
+{
+	bool		directory_listing_enabled;
+	std::string	response_dir;
+	std::string	upload_dir;
+	std::string	redirect;
+	short		forbit_methods[8];
+}	Route;
+
+
 typedef struct server_info_s {
 		std::list<std::string>				port_number;
 		std::string							host;
+		std::string							index;
 		std::string							server_name;
 		std::string							root_dir;
-		bool								directory_listing_enabled;
-		std::string							index;
-		std::list<std::string>				response_to_dir;
-		std::list<std::string>				cgi_response;
-		std::string							upload_dir;
+		std::map<std::string, std::string>	cgi_response;
+		std::map<std::string, Route>		routes;
 		std::vector<int>::const_iterator	listening_socket_fd; // server can return info struct back
 } server_info_t;
 
@@ -52,17 +60,26 @@ class ServerInit
 		/* Atribure parcers */
 		template <typename NoKeyExcept, typename ValueExcept>
 		std::list<std::string>	get_list_of_values_by_word(std::string const &server_info_text,
-									const char *key_word, int (*ValueTest)(std::string const&)) EXCEPTION;
+									const char *key_word, bool (*ValueTest)(std::string const&)) EXCEPTION;
 
 		template <typename NoKeyExcept, typename ValueExcept>
 		std::string	get_value_by_keyword(std::string const &server_info_text,
-					const char *key_word, const int occurance, int (*ValueTest)(std::string const&)) EXCEPTION;
+					const char *key_word, const int occurance, bool (*ValueTest)(std::string const&)) EXCEPTION;
+
+		std::map<std::string, std::string>	parce_cgi(std::string const &server_info) EXCEPTION;
+		std::map<std::string, Route>		routeExtract(std::string const &server_info) EXCEPTION;
+		std::string							aquire_route(std::string const &server_info_text, const int index) EXCEPTION;
+		std::pair<std::string, std::string> get_route_definition(std::string const &content, const int occurance) EXCEPTION;
+		Route								parce_route_definition(std::string const &route_definition_text) EXCEPTION;
 
 		/* Atribute Validators */
-		static int	validIndexFile(std::string const &str);
-		static int	isPositiveNumber(std::string const &str);
-		static int	pathcheck(std::string const &path);
-		static int	validServerName(std::string const &str);
+		static bool	validIndexFile(std::string const &str);
+		static bool	isPositiveNumber(std::string const &str);
+		static bool	pathcheck(std::string const &path);
+		static bool	validServerName(std::string const &str);
+		static bool	validCGI(std::string const &str);
+		static bool	validPath(std::string const &str);
+		static bool	validEnable(std::string const &str);
 
 		/* utils */
 		static int	check_match_word(std::string const &content, std::size_t index,
@@ -85,11 +102,23 @@ class ServerInit
 			class	NotNumber: public InvalidPort {};
 		class	InvalidRoot: public ValidationFailure {};
 		class	NoRoot: public ValidationFailure {};
+		class	NoHost: public ValidationFailure {};
+		class	InvalidHost: public ValidationFailure {};
 	class	ValidationException: public std::exception {};
 		class	NoServerName: public ValidationException {};
 		class	InvalidServerName: public ValidationException {};
 		class	NoIndex: public ValidationException {};
 		class	WrongIndex: public ValidationException {};
+		class	NoCGI: public ValidationException {};
+		class	WrongCGIDescriptionAvailable: public ValidationException {};
+		class	NoLinks: public ValidationException {};
+		class	WrongDirLinks: public ValidationException {};
+		class	NoDLInfo: public ValidationException {};
+		class	InvalidDLInfo: public ValidationException {};
+		class	NoUploadDir: public ValidationException {};
+		class	InvalidUploadDir: public ValidationException {};
+		class	NoDefaultFile: public ValidationException {};
+		class	InvalidDefaultFile: public ValidationException {};
 };
 
 #endif

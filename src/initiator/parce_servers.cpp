@@ -2,7 +2,7 @@
 
 static int	is_value_symbol(const char c)
 {
-	if ((c > 40 && c < 91) || (c > 94 && c <= 122))
+	if ((c > 32 && c < 91) || (c > 94 && c <= 122))
 		return (1);
 	return (0);
 }
@@ -34,7 +34,7 @@ std::string	ServerInit::aquire_value(std::string const &server_info_text, const 
 
 template <typename NoKeyExcept, typename ValueExcept>
 std::list<std::string>	ServerInit::get_list_of_values_by_word(std::string const &server_info_text,
-							const char *key_word, int (*ValueTest)(std::string const&)) EXCEPTION
+							const char *key_word, bool (*ValueTest)(std::string const&)) EXCEPTION
 {
 	std::list<std::string>	list_of_ports;
 	int						occurance_iterator = 1;
@@ -52,7 +52,7 @@ std::list<std::string>	ServerInit::get_list_of_values_by_word(std::string const 
 
 template <typename NoKeyExcept, typename ValueExcept>
 std::string	ServerInit::get_value_by_keyword(std::string const &server_info_text,
-				const char *key_word, const int occurance, int (*ValueTest)(std::string const&)) EXCEPTION
+				const char *key_word, const int occurance, bool (*ValueTest)(std::string const&)) EXCEPTION
 {
 	std::size_t	value_position;
 
@@ -64,12 +64,12 @@ std::string	ServerInit::get_value_by_keyword(std::string const &server_info_text
 	return (aquire_value(server_info_text, strlen(key_word), value_position).c_str());
 }
 
-int ServerInit::pathcheck(std::string const &path)
+bool ServerInit::pathcheck(std::string const &path)
 {
 	return (access(path.c_str(), R_OK | W_OK));
 }
 
-int ServerInit::isPositiveNumber(std::string const &str)
+bool ServerInit::isPositiveNumber(std::string const &str)
 {
 	std::stringstream ss(str);
 	double num;
@@ -80,54 +80,175 @@ int ServerInit::isPositiveNumber(std::string const &str)
 		return true;
 }
 
-int ServerInit::validIndexFile(std::string const &str)
+bool ServerInit::validIndexFile(std::string const &str)
 {
 	(void) str;
 	return (false);
 }
 
-int ServerInit::validServerName(std::string const &str)
+bool ServerInit::validServerName(std::string const &str)
 {
 	(void) str;
 	return (false);
+}
+
+bool ServerInit::validCGI(std::string const &str)
+{
+	if (str[0] != '.' || str.find('$') == std::string::npos)
+		return (true);
+	else
+		return (false);
+
+}
+
+bool ServerInit::validPath(std::string const &str)
+{
+	if (str[0] != '/' || str.find('$') == std::string::npos)
+		return (true);
+	else
+		return (false);
+}
+
+bool ServerInit::validEnable(std::string const &str)
+{
+	if (str != "enable" && str != "disable")
+		return (true);
+	else
+		return (false);
+}
+
+std::map<std::string, std::string>	ServerInit::parce_cgi(std::string const &server_info) EXCEPTION
+{
+	std::map<std::string, std::string>	cgi_map;
+	std::string							cgi_info;
+	std::string							extention;
+	int									iterator = 1;
+
+	while (true) 
+	{
+		try {
+			cgi_info = get_value_by_keyword<NoCGI, WrongCGIDescriptionAvailable>(server_info, "use_cgi", iterator, validCGI);
+		} catch(const NoCGI& e) {
+			break;
+		}
+		extention = cgi_info.substr(0, cgi_info.find('$'));
+		cgi_map[extention] = cgi_info.erase(0, cgi_info.find('$') + 1);
+		iterator++;
+	}
+	std::cout << cgi_map[extention] << std::endl;
+	return (cgi_map);
+}
+
+std::string	ServerInit::aquire_route(std::string const &server_info_text, const int index) EXCEPTION
+{
+	std::size_t	iterator = index;
+	std::size_t	begin = 0;
+	std::size_t	end = 0;
+
+	while (server_info_text[iterator] != '{' && server_info_text[iterator])
+	{
+		if (!begin && is_value_symbol(server_info_text[iterator]))
+			begin = iterator;
+		if (begin)
+		{
+			if (end && is_value_symbol(server_info_text[iterator]))
+				throw EnclosureFailure();
+			if ((!end && !is_value_symbol(server_info_text[iterator]))) {
+				end = iterator;
+			}
+		}
+		iterator++;
+	}
+	if (!end && server_info_text[iterator] == '{')
+		end = iterator;
+	return (server_info_text.substr(begin, end - begin));
+}
+
+std::pair<std::string, std::string> ServerInit::get_route_definition(std::string const &content, const int occurance) EXCEPTION
+{
+	std::pair<std::string, std::string>	route_definition_text;
+	std::size_t begin_index_of_key;
+	std::size_t index_of_closing_bracket;
+	const char *definition = "location";
+
+	begin_index_of_key = find_word(content, definition, occurance);
+	if (begin_index_of_key >= (content.length() - strlen(definition)))
+		throw NoLinks();
+	route_definition_text.first = aquire_route(content, begin_index_of_key + strlen(definition));
+	begin_index_of_key = begin_index_of_key + route_definition_text.first.length();
+	index_of_closing_bracket = find_braket_end(content, begin_index_of_key);
+	if (!index_of_closing_bracket)
+		throw EnclosureFailure();
+	begin_index_of_key = content.find("{", begin_index_of_key) + 1;
+	route_definition_text.second = content.substr(begin_index_of_key, index_of_closing_bracket - begin_index_of_key - 1);
+	return (route_definition_text);
+}
+
+Route	ServerInit::parce_route_definition(std::string const &route_definition_text) EXCEPTION
+{
+	Route	route_definition;
+
+	(void) route_definition_text;
+	route_definition.response_dir = get_value_by_keyword<NoLinks, WrongDirLinks>(route_definition_text, "dir_route", 1, pathcheck);
+	route_definition.upload_dir = get_value_by_keyword<NoUploadDir, InvalidUploadDir>(route_definition_text, "dir_route", 1, pathcheck);
+	if ((get_value_by_keyword<NoDLInfo, InvalidDLInfo>(route_definition_text, "dir_listing", 1, validEnable)) == "enable")
+		route_definition.directory_listing_enabled = true;
+	else
+		route_definition.directory_listing_enabled = false;
+	route_definition.redirect = get_value_by_keyword<NoLinks, WrongDirLinks>(route_definition_text, "redirect", 1, validServerName);
+	route_definition.redirect = get_value_by_keyword<NoDefaultFile, InvalidDefaultFile>(route_definition_text, "default_file", 1, validServerName);
+	return (route_definition);
+}
+
+std::map<std::string, Route>	ServerInit::routeExtract(std::string const &server_info) EXCEPTION
+{
+	std::map<std::string, Route>		map;
+	std::pair<std::string, std::string>	route_definition_text;
+	int									iterator = 1;
+
+	while (true)
+	{
+		try {
+			route_definition_text = get_route_definition(server_info, iterator);
+
+		} catch(NoLinks &e) {
+			break;
+		}
+		// std::cout << route_definition_text.first << std::endl;
+		// std::cout << route_definition_text.second << std::endl;
+		iterator++;
+		map.insert(std::pair<std::string, Route>(route_definition_text.first, parce_route_definition(route_definition_text.second)));
+	}
+	std::cout << map["/jumper/"].response_dir << std::endl;
+	return (map);
 }
 
 void	ServerInit::parce_server(std::string const &server_info)
 {
 	server_info_t	info;
 
+	routeExtract(server_info);
 	info.port_number = get_list_of_values_by_word<NoPort, NotNumber>(server_info, "listen", isPositiveNumber);
 	info.root_dir = get_value_by_keyword<NoRoot, InvalidRoot>(server_info, "root", 1, pathcheck);
 	info.index = get_value_by_keyword<NoIndex, WrongIndex>(server_info, "index", 1, validIndexFile);
 	info.server_name = get_value_by_keyword<NoServerName, InvalidServerName>(server_info, "server_name", 1, validServerName);
-	// info.server_name = get_value_by_keyword<NoServerName, InvalidServerName>(server_info, "server_name", 1, validServerName);
-	// info.host = 
-	// info.host = 
+	info.host = get_value_by_keyword<NoHost, InvalidHost>(server_info, "host", 1, validServerName);
+	info.cgi_response = parce_cgi(server_info);
+
+
+	// info.response_to_dir = parce_links(server_info);
+	// if ((get_value_by_keyword<NoDLInfo, InvalidDLInfo>(server_info, "dir_listing", 1, validEnable)) == "enable")
+	// 	info.directory_listing_enabled = true;
+	// else
+	// 	info.directory_listing_enabled = false;
+	// if (info.directory_listing_enabled)
+	// 	std::cout << "== Dir Listing Enabled ==" << std::endl;
+	// info.upload_dir = get_value_by_keyword<NoUploadDir, InvalidUploadDir>(server_info, "upload_dir", 1, pathcheck);
+	// info.upload_dir = get_value_by_keyword<NoUploadDir, InvalidUploadDir>(server_info, "upload_dir", 1, pathcheck);
 	// info.root_dir.append("/home/websrv/http");
 
 	servers_info.push_back(info);
 }
-
-// static std::map<std::string, size_t>	map_methods()
-// {
-// 	std::map<std::string, size_t> request_methods;
-// 	request_methods["GET"] = GET_METHOD;
-// 	request_methods["HEAD"] = HEAD_METHOD;
-// 	request_methods["POST"] = POST_METHOD;
-// 	request_methods["DELETE"] = DELETE_METHOD;
-// 	request_methods["TRACE"] = TRACE_METHOD;
-// 	request_methods["CONNECT"] = CONNECT_METHOD;
-// 	request_methods["OPTIONS"] = OPTIONS_METHOD;
-// 	return (request_methods);
-// }
-
-// static void	map_versions(std::map<std::string, size_t> &versions)
-// {
-// 	versions["HTTP/1.1"] = VERSION_1_1;
-// 	versions["HTTP/1.0"] = VERSION_1_0;
-// }
-
-// std::map<std::string, size_t> Request::request_methods;
 
 void	ServerInit::parce_servers(std::list<std::string> const &server_definitions)
 {
@@ -138,7 +259,4 @@ void	ServerInit::parce_servers(std::list<std::string> const &server_definitions)
 		parce_server(*iterator);
 		iterator++;
 	}
-	// Request::InfoMap	Request::request_methods = map_methods();
-	// map_versions(Request::versions);
-
 }

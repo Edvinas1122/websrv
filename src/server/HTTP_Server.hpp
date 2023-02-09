@@ -41,7 +41,7 @@ class HTTP_Server
 		int		bind_kernel_socket(const struct addrinfo *desired_TCP_service_info, char const *port_number);
 		int		init_socket_from_address_list(struct addrinfo *socket_addr_list) EXCEPTION;
 		void	initiateListeningSocket(char const *port_number) EXCEPTION;
-		void	assignCGI();
+		void	assignCGI(std::map<std::string, std::string> const &cgi_response);
 
 	class		EpollFailure: public std::exception {};
 	class		BindFailure: public std::exception {};
