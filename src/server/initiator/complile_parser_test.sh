@@ -1,0 +1,1 @@
+c++	--std=c++98 -g  -DCPP98=98 -I. -I/home/git_websrv/src/server -I/home/git_websrv/src basic_validation.cpp config_file_parcer.cpp parce_servers.cpp test.cpp

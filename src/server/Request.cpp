@@ -1,28 +1,26 @@
-#include <HTTP_Server.hpp>
+#include <VirtualServer.hpp>
 #include <Request.hpp>
 
-void	Request::parce(std::string const &received_message) EXCEPTION
+void	Request::parce(std::string const &received_message, std::string const &port) EXCEPTION
 {
 	validate_received_message(received_message);
 	parceRequestLine(received_message);
+	_server = BroadCastExecutor::GetVirtualServer(host, port);
 }
 
 broadCastInfo	Request::getBroatCastInfo()
 {
 	broadCastInfo	info;
 
-	std::cout << "check for cgi " << fileExtension() << std::endl;
 	if (_server->check_for_cgi(fileExtension()))
 	{
 		info.file_fd = _server->executeCGI(fileExtension(), file(), path);
 		info.method = GET_METHOD;
-		info.not_first_packet = true;
 		return (info);
 	}
 	if (method == GET_METHOD)
 		info.file_fd = access_path();	
 	info.method = method;
-	info.not_first_packet = true;
 	return (info);
 }
 
@@ -41,7 +39,7 @@ int	Request::Validate()
 {
 	std::string	path;
 
-	path.append(_server->server_info().root_dir);
+	path.append(_server->info().root_dir);
 	path.append("/");
 	path.append(path);
 	if (!check_requested_access(path))
@@ -71,11 +69,13 @@ void	Request::validate_received_message(std::string const &received_message)
 
 void	Request::parceRequestLine(std::string const &received_message) EXCEPTION
 {
+	std::cout << received_message << std::endl;
 	method = determine_method(received_message);
 	if (method > 8 || method < 1)
 		throw InvalidRequest();
 	version = determine_version(received_message);
 	path = determine_path(received_message);
+	host = get_host(received_message);
 }
 
 
@@ -96,6 +96,17 @@ static std::string	find_in_string(std::string const &received_message, const int
 	while (word > iterator++)
 		line >> token;
 	return (token);
+}
+
+std::string	Request::get_host(std::string const &received_message)
+{
+	std::string string = received_message;
+	size_t start_pos = string.find("Host: ") + strlen("Host: ");
+	size_t end_pos = string.find("\n", start_pos);
+	std::string host = string.substr(start_pos, end_pos - start_pos);
+	size_t colon_pos = host.find(":");
+
+	return (host.substr(0, colon_pos));
 }
 
 size_t	Request::determine_method(std::string const &received_message)
@@ -128,13 +139,13 @@ int	Request::access_path(void)
 {
 	std::string	path_to_get;
 
-	path_to_get = _server->server_info().root_dir;
+	path_to_get = _server->info().root_dir;
 	if (!path.length()) {
 		path_to_get.append("/");
-		path_to_get.append(_server->server_info().index);
+		path_to_get.append(_server->info().index);
 	}
 	else if (path == "/") {
-		path_to_get.append(_server->server_info().index);
+		path_to_get.append(_server->info().index);
 	}
 	else
 		path_to_get.append(path);
@@ -142,7 +153,6 @@ int	Request::access_path(void)
 		return (open(path_to_get.c_str(), O_RDONLY));
 	else
 		return (-1);
-		
 }
 
 /* 

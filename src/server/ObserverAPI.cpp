@@ -172,6 +172,9 @@ void	ObserverAPI::setFdAsNotBlocking(const int fd) EXCEPTION
 	}
 }
 
+/*
+	dynamic container could make epoll not limited
+*/
 ObserverAPI::epollEventArray	ObserverAPI::eventArray(void)
 {
 	// if (events)

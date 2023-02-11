@@ -23,6 +23,8 @@
 # include <return_codes.h>
 # include <cerrno>
 # include <sys/types.h>
+# include <algorithm>
 # include <sys/wait.h>
+# include <sys/time.h>
 
 #endif

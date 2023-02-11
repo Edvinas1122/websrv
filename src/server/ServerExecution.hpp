@@ -2,27 +2,28 @@
 # define SERVEREXECUTION_HPP
 
 # include <includes.hpp>
-# include <HTTP_Server.hpp>
+# include <VirtualServer.hpp>
 # include <BroadCastExecutor.hpp>
 # include <ObserverAPI.hpp>
-# include <initiator.hpp>
+# include <ConfigParcer.hpp>
 
 # define QUE_IS_NOT_EMPTY(vec) (!vec.empty())
 # define STREAM_A_PACKET(que_iter) ((*que_iter)->stream_packet())
-# define SOCKETS_LOUD(x) (observer.checkFD(server->server_info().listening_socket_fd[x]))
+// # define SOCKETS_LOUD(x) (observer.checkFD(server->server_info().listening_socket_fd[x]))
 
 class HTTP_Server;
 class BroadCastExecutor;
-class ServerInit;
+class ConfigParcer;
 class ObserverAPI;
 
 class ServerExecution 
 {
 	public:
-		typedef std::list<BroadCastExecutor> clientQueVec;
+		typedef std::list<BroadCastExecutor>	clientQueVec;
+		typedef std::map<int, std::string>		socketsMap;
 
 	private:
-		HTTP_Server		*server;
+		socketsMap		ServersSocketsFd;
 		clientQueVec	client_que;
 		ObserverAPI		observer;
 
@@ -33,7 +34,7 @@ class ServerExecution
 	/*
 		Initiator
 	*/
-		void	parceConfigurationFile(const char *file_path);
+		void	initiateServer(const char *file_path);
 
 	/*
 		Controler
@@ -45,8 +46,17 @@ class ServerExecution
 		void	printInfo(void);
 	
 	private:
-		/* Initialize */
-		void	constructServer(ServerInit &initiator);
+
+	/*
+		Sockets
+	*/
+		void	initiateSockets(std::list<std::string> port_number);
+		void	assignObserverToSockets(void);
+
+		/* Socket Bind - Init */
+		int	bind_kernel_socket(const struct addrinfo *desired_TCP_service_info, char const *port_number);
+		int	init_socket_from_address_list(struct addrinfo *socket_addr_list) EXCEPTION;
+		int	initiateListeningSocket(char const *port_number) EXCEPTION;
 
 	/* RunTime */
 
@@ -60,13 +70,16 @@ class ServerExecution
 	/*
 		Accept Client
 	*/
-		void	acceptClient(void);
+		void	incomingMonitorAndHandler();
+		void	findLoudSockets(std::vector<int> &loudSocketsList);
+		void	acceptClient(int loudSocketFd);
 		void	addToBroadCastQue(BroadCastExecutor stream);
+		bool	testIfAlreadyAccepted(const int client);
 
-
-		bool	noNewRequests();
+		// bool	noNewRequests();
 
 	class	RequestTimeOut: public std::exception {};
+	class	BindFailure: public std::exception {};
 };
 
 #endif

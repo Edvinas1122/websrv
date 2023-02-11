@@ -2,7 +2,6 @@
 # define HTTP_SERVER_HPP
 
 # include <ServerExecution.hpp>
-
 # include <CGI.hpp>
 
 # define LAST_PACKET false
@@ -10,7 +9,7 @@
 typedef struct server_info_s server_info_t;
 typedef struct Route_s Route;
 
-class HTTP_Server
+class VirtualServer
 {
 	private:
 		std::string							host;
@@ -22,28 +21,23 @@ class HTTP_Server
 		std::map<std::string, Route>		routes;
 
 	private:
-		std::vector<int>					listening_socket_fd;
 		std::map<std::string, CGI_Median>	cgi;
 
 	public:
-		HTTP_Server(server_info_t &info);
-		~HTTP_Server(void) {};
+		VirtualServer(server_info_t const &info);
+		~VirtualServer(void) {};
 
-		void			initiateSockets(std::list<std::string> port_number);
 
-		server_info_t	server_info() const;
+		server_info_t	info() const;
 		bool			check_for_cgi(std::string const &file_extention);
 		int				executeCGI(std::string const &file_extention, std::string const &script, std::string const &query);
+		/* END */
 
 	private:
-		/*initiation*/
-		int		bind_kernel_socket(const struct addrinfo *desired_TCP_service_info, char const *port_number);
-		int		init_socket_from_address_list(struct addrinfo *socket_addr_list) EXCEPTION;
-		void	initiateListeningSocket(char const *port_number) EXCEPTION;
+		/* assign CGI - Init */
 		void	assignCGI(std::map<std::string, std::string> const &cgi_response);
 
 	class		EpollFailure: public std::exception {};
-	class		BindFailure: public std::exception {};
 };
 
 #endif

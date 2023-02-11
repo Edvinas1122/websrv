@@ -7,7 +7,7 @@ int CGI_Median::execute(std::string const &cgi_script_path, std::string const &q
 	char	*script_path[4];
 
 	script_path[0] = (char *)cgi_executable_path.c_str();
-	std::cout << cgi_script_path << std::endl;
+	// std::cout << cgi_script_path << std::endl;
 	// std::cout << query << std::endl;
 	script_path[1] = (char *)"-q";
 	script_path[2] = (char *)"/home/git_websrv/http/index.php";

@@ -1,4 +1,4 @@
-#include <HTTP_Server.hpp>
+#include <ServerExecution.hpp>
 
 /*
 	Itterates trough socket addr_list, with each address list attempts to:
@@ -25,7 +25,14 @@ static void set_socket_as_non_blocking(const int socket_fd)
 	}
 }
 
-int	HTTP_Server::init_socket_from_address_list(struct addrinfo *socket_addr_list) EXCEPTION
+static void	limit_socket_buffer_intake(const int sock)
+{
+	const int bufsize = 1000000;
+
+	setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof bufsize);
+}
+
+int	ServerExecution::init_socket_from_address_list(struct addrinfo *socket_addr_list) EXCEPTION
 {
 	int	socket_fd;
 	int optval = 1;
@@ -40,6 +47,7 @@ int	HTTP_Server::init_socket_from_address_list(struct addrinfo *socket_addr_list
 			setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 			if (bind(socket_fd, socket_addr_list_node->ai_addr, socket_addr_list_node->ai_addrlen) == SUCESS) {
 				set_socket_as_non_blocking(socket_fd);
+				limit_socket_buffer_intake(socket_fd);
 				break;
 			}
 			close(socket_fd);
@@ -79,7 +87,7 @@ static void	set_addrinfo_for_http(struct addrinfo *TCP_service_info)
 	TCP_service_info->ai_protocol = 0;
 }
 
-int HTTP_Server::bind_kernel_socket(const struct addrinfo *desired_TCP_service_info, char const *port_number)
+int ServerExecution::bind_kernel_socket(const struct addrinfo *desired_TCP_service_info, char const *port_number)
 {
 	struct addrinfo *possible_socket_addr_list;
 
@@ -111,12 +119,32 @@ int HTTP_Server::bind_kernel_socket(const struct addrinfo *desired_TCP_service_i
 /*
 	Starts socket in kernel, binds to it, and listen. -> returns fd of listening of port
 */
-void	HTTP_Server::initiateListeningSocket(char const *port_number) EXCEPTION
+int	ServerExecution::initiateListeningSocket(char const *port_number) EXCEPTION
 {
 	struct addrinfo desired_TCP_service_info;
+	int				socket_fd;
 
 	set_addrinfo_for_http(&desired_TCP_service_info);
-	listening_socket_fd.push_back(bind_kernel_socket(&desired_TCP_service_info, port_number));
-	if (listen(listening_socket_fd.back(), MAX_REQUEST_QUE) != SUCESS)
+	socket_fd = bind_kernel_socket(&desired_TCP_service_info, port_number);
+	if (listen(socket_fd, MAX_REQUEST_QUE) != SUCESS)
 		throw BindFailure();
+	return (socket_fd);
+}
+
+void	ServerExecution::initiateSockets(std::list<std::string> port_numbers)
+{
+	std::list<std::string>::iterator	iterator = port_numbers.begin();
+	int									socket_fd;
+	std::map<std::string, int>			socket_track_init;
+
+	while (iterator != port_numbers.end())
+	{
+		if (socket_track_init.find((*iterator).c_str()) == socket_track_init.end()) {
+			std::cout << (*iterator).c_str() << std::endl;
+			socket_fd = initiateListeningSocket((*iterator).c_str());
+			socket_track_init[(*iterator).c_str()] = socket_fd;
+			ServersSocketsFd[socket_fd] = (*iterator).c_str();
+		}
+		iterator++;
+	}
 }
