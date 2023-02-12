@@ -9,7 +9,6 @@
 
 # define QUE_IS_NOT_EMPTY(vec) (!vec.empty())
 # define STREAM_A_PACKET(que_iter) ((*que_iter)->stream_packet())
-// # define SOCKETS_LOUD(x) (observer.checkFD(server->server_info().listening_socket_fd[x]))
 
 class HTTP_Server;
 class BroadCastExecutor;

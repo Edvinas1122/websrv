@@ -40,7 +40,6 @@ bool	BroadCastExecutor::controller(const bool in, const bool out)
 			return (false);
 		}
 		qued_request = false;
-		informed_client = false;
 		return (false);
 	} else if (out && !informed_client) {
 		std::cout << "Responding to a request " << std::endl;
@@ -50,13 +49,14 @@ bool	BroadCastExecutor::controller(const bool in, const bool out)
 		end = ServeRequest();
 		if (!end && !qued_request) {
 			std::cout << "Serving " << std::endl;
+			informed_client = false;
 			return (false);
 		}
 		if (!end && qued_request) {
 			std::cout << "Responding qued request " << std::endl;
-			Respond();
+			// Respond();
 
-			return (true);
+			return (false);
 		}
 	}
 	return (true);
@@ -157,11 +157,10 @@ bool	BroadCastExecutor::receiveBufferRead() EXCEPTION
 
 void	BroadCastExecutor::Respond() EXCEPTION
 {
-	int	response_code;
 	int	bytes_sent;
 
-	response_code = client_request.Validate();
-	if (OK == response_code) {
+	client_request.Validate();
+	if (true) {
 		bytes_sent = send(client_fd, "HTTP/1.1 200 OK\n\n", 17, 0);
 	}
 	else
@@ -173,7 +172,6 @@ void	BroadCastExecutor::Respond() EXCEPTION
 	}
 	if (bytes_sent <= FAILURE)
 		throw SendingFailure();
-	// memset(&info, 0, sizeof(broadCastInfo));
 }
 
 bool	BroadCastExecutor::ServeRequest()

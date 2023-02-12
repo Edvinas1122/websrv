@@ -32,9 +32,9 @@ void	ServerExecution::serveQue(void)
 	{
 		if (clientObservation(client_que, que_iter))
 		{
-			std::cout << "write: " << observer.checkFD(que_iter->info_UserFd()) \
-			<< " read: " << observer.checkFDforInBound(que_iter->info_UserFd()) << std::endl;
-			usleep (100000);
+			// std::cout << "write: " << observer.checkFD(que_iter->info_UserFd())
+			// << " read: " << observer.checkFDforInBound(que_iter->info_UserFd()) << std::endl;
+			usleep (10000);
 			if (serveClient(client_que, que_iter) == LAST_PACKET)
 			{
 				(*que_iter).close_connection();
@@ -61,57 +61,6 @@ bool	ServerExecution::clientObservation(clientQueVec &client_que, clientQueVec::
 	}
 	return (false);
 }
-
-// bool	ServerExecution::serveClient(clientQueVec &client_que, clientQueVec::iterator &que_iter)
-// {
-// 	(void) client_que;
-// 	if (!(*que_iter).info_Method()) {
-// 		if (observer.checkFDforInBound((*que_iter).info_UserFd()))
-// 		{
-// 			try {
-// 				(*que_iter).ReceiveRequest();
-// 			} catch(BroadCastExecutor::BadRequest& e) {
-// 				std::cerr << "Bad Request Cannot respond" << '\n';
-// 				return (LAST_PACKET);
-// 			}
-// 			std::cout << "Receiving request in fd ID_" << (*que_iter).info_UserFd() << std::endl;
-// 		}
-// 		else if (observer.checkFD((*que_iter).info_UserFd()))
-// 		{
-// 			std::cout << "Responding: " << (*que_iter).info_UserFd() << std::endl;
-// 			try {
-// 				(*que_iter).Respond();
-// 			} catch(BroadCastExecutor::BroadCastFailure& e) {
-// 				std::cerr << "failed to respond to client" << '\n';
-// 				return (LAST_PACKET);
-// 			}
-// 		}
-// 	}
-// 	else
-// 	{
-// 		if (observer.checkFDforInBound((*que_iter).info_UserFd()))
-// 		{
-// 			std::cout << "receiver inbound " << std::endl;
-// 			try {
-// 				(*que_iter).set_KeepAlive();
-// 				(*que_iter).ReceiveRequest();
-// 			} catch(BroadCastExecutor::BadRequest& e) {
-// 				std::cerr << "cannot receive back from keep alive" << '\n';
-// 				return (LAST_PACKET);
-// 			}
-// 		}
-// 		else if (observer.checkFD((*que_iter).info_UserFd()))
-// 		{
-// 			try {
-// 				return ((*que_iter).ServeRequest());
-// 			} catch(BroadCastExecutor::BroadCastFailure& e) {
-// 				std::cerr << "failure in stream" << '\n';
-// 				return (LAST_PACKET);
-// 			}
-// 		}
-// 	}
-// 	return (true);
-// }
 
 /*
 	Accept Client

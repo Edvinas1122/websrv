@@ -19,6 +19,7 @@ class Request
 		bool		keep_alive;
 		std::string	host;
 		std::string	query;
+		std::string	file_name;
 
 	public:
 		Request() {_server = NULL;};
@@ -43,6 +44,7 @@ class Request
 		size_t	determine_version(std::string const &received_message);
 		std::string	determine_path(std::string const &received_message);
 		std::string	get_host(std::string const &received_message);
+		// std::string	determine_query(std::string const &received_message);
 
 		/* Access */
 		int	access_path(void);

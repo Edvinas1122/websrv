@@ -41,7 +41,7 @@ int	Request::Validate()
 
 	path.append(_server->info().root_dir);
 	path.append("/");
-	path.append(path);
+	std::cout << path << std::endl;
 	if (!check_requested_access(path))
 		return (OK);
 	return (BAD);
@@ -67,17 +67,42 @@ void	Request::validate_received_message(std::string const &received_message)
 	(void) received_message;
 }
 
+static std::string	determine_file(std::string const &received_message)
+{
+	std::string str = received_message;
+
+	std::size_t pos = str.find("?");
+	if (pos != std::string::npos) {
+		str.erase(pos);
+	}
+	std::cout << str << std::endl;
+	return (str);
+}
+
+static std::string	determine_query(std::string const &received_message)
+{
+	std::string str = received_message;
+
+    std::size_t pos = str.find("?");
+    if (pos != std::string::npos) {
+        str.substr(pos);
+    }
+    std::cout << str << std::endl;
+	return (str);
+}
+
 void	Request::parceRequestLine(std::string const &received_message) EXCEPTION
 {
-	std::cout << received_message << std::endl;
+	// std::cout << received_message << std::endl;
 	method = determine_method(received_message);
 	if (method > 8 || method < 1)
 		throw InvalidRequest();
 	version = determine_version(received_message);
 	path = determine_path(received_message);
+	file_name = determine_file(path);
+	query = determine_query(path);
 	host = get_host(received_message);
 }
-
 
 /* Request Line string extractors */
 static std::string	find_in_string(std::string const &received_message, const int column, const int word)

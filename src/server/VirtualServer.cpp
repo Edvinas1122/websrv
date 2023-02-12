@@ -30,7 +30,6 @@ server_info_t	VirtualServer::info() const
 	info.cgi_response = cgi_response;
 	info.routes = routes;
 	copy_list_values(info.port_number, port_number);
-	// info.port_number = port_number;
 	return (info);
 }
 
