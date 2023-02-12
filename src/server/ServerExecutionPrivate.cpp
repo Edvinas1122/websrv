@@ -30,6 +30,7 @@ void	ServerExecution::serveQue(void)
 	que_iter = client_que.begin();
 	while (QUE_IS_NOT_EMPTY(client_que) && que_iter != client_que.end())
 	{
+		// usleep(100000);
 		if (clientObservation(client_que, que_iter))
 		{
 			// std::cout << "write: " << observer.checkFD(que_iter->info_UserFd())
